@@ -1,33 +1,44 @@
-/*INSERT GROUP ID AND COOKIE BELOW*/
-
-var groupId = 15049970; // << Replace with your Group Id
-var cookie = "YOUR_SECURE_COOKIE"; // << Replace with your account cookie
-
-/*INSERT GROUP ID AND COOKIE ABOVE*/
-
 const express = require("express");
 const rbx = require("noblox.js");
 const app = express();
 
-app.use(express.json()); // To handle JSON payloads
+app.use(express.json());
 
-async function startApp() {
-  try {
-    await rbx.setCookie(cookie);
-    let currentUser = await rbx.getCurrentUser();
-    console.log(`Logged in as ${currentUser.UserName}`);
-  } catch (err) {
-    console.error("Failed to login: ", err);
-  }
-}
-startApp();
+const groupId = 15049970; // Replace with your Group Id
+const cookie = "YOUR_SECURE_COOKIE"; // Replace with your account cookie
+
+const honorRanks = {
+  0: "[E-1] Recruit",
+  1: "[E-2] Private",
+  5: "[E-3] Private First Class",
+  10: "[E-4] Specialist",
+  15: "[E-5] Corporal",
+  20: "[E-6] Sergeant",
+  30: "[E-7] Staff Sergeant",
+  40: "[E-8] Sergeant First Class",
+  50: "[E-9] Master Sergeant",
+  70: "[E-10] Sergeant Major",
+  90: "[W-I] Warrant Officer",
+  120: "[W-II] Upper Warrant Officer",
+  150: "[W-III] Chief Warrant Officer"
+};
 
 app.post("/ranker", async (req, res) => {
-  const { userid, rank } = req.body;
+  const { userid, honor } = req.body;
   
+  // Determine the role based on honor
+  let rankId;
+  for (let [threshold, rank] of Object.entries(honorRanks).reverse()) {
+    if (honor >= threshold) {
+      rankId = rank;
+      break;
+    }
+  }
+
   try {
-    await rbx.setRank(groupId, parseInt(userid), parseInt(rank));
-    res.json({ message: "Ranked successfully!" });
+    await rbx.setCookie(cookie);
+    await rbx.setRank(groupId, parseInt(userid), rankId);
+    res.json({ message: "Rank updated successfully!" });
   } catch (err) {
     console.error("Failed to set rank: ", err);
     res.status(500).json({ error: "Failed to set rank." });
