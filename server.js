@@ -58,3 +58,8 @@ app.post("/ranker", async (req, res) => {
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
+
+app.post("/test", (req, res) => {
+  console.log("Test request received");
+  res.json({ message: "Test request processed" });
+});
