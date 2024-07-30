@@ -16,7 +16,7 @@
   "repository": {
     "url": "https://glitch.com/edit/#!/tgh-rank-bot"
   },
-  "license": "tgh",
+  "license": "MIT",
   "keywords": [
     "node",
     "glitch"
