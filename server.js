@@ -7,15 +7,16 @@ app.use(express.json());
 const groupId = 15049970; // Replace with your Group Id
 const cookie = "YOUR_SECURE_COOKIE"; // Replace with your account cookie
 
+// honor amount: roleid
 const honorRanks = {
-  0: "[E-1] Recruit",
-  1: "[E-2] Private",
-  5: "[E-3] Private First Class",
-  10: "[E-4] Specialist",
-  15: "[E-5] Corporal",
-  20: "[E-6] Sergeant",
-  30: "[E-7] Staff Sergeant",
-  40: "[E-8] Sergeant First Class",
+  0: 102794177,
+  1: 84972954,
+  5: 85150886,
+  10: 89383841,
+  15: 85006910,
+  20: 85006940,
+  30: 84972953,
+  40: 90562516,
   50: "[E-9] Master Sergeant",
   70: "[E-10] Sergeant Major",
   90: "[W-I] Warrant Officer",
