@@ -17,23 +17,32 @@ const honorRanks = {
   20: 85006940,
   30: 84972953,
   40: 90562516,
-  50: "[E-9] Master Sergeant",
-  70: "[E-10] Sergeant Major",
-  90: "[W-I] Warrant Officer",
-  120: "[W-II] Upper Warrant Officer",
-  150: "[W-III] Chief Warrant Officer"
+  50: 91138752,
+  70: 87676269,
+  90: 34706580,
+  120: 102794281,
+  150: 89896768
 };
 
 app.post("/ranker", async (req, res) => {
   const { userid, honor } = req.body;
-  
-  // Determine the role based on honor
-  let rankId;
-  for (let [threshold, rank] of Object.entries(honorRanks).reverse()) {
+
+  // Validate input
+  if (!userid || !honor || typeof userid !== 'number' || typeof honor !== 'number') {
+    return res.status(400).json({ error: "Invalid input." });
+  }
+
+  // Determine the role ID based on honor
+  let roleId;
+  for (let [threshold, id] of Object.entries(honorRanks).reverse()) {
     if (honor >= threshold) {
-      rankId = rank;
+      roleId = id;
       break;
     }
+  }
+
+  if (!roleId) {
+    return res.status(400).json({ error: "Invalid honor level." });
   }
 
   try {
