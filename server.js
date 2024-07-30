@@ -47,7 +47,7 @@ app.post("/ranker", async (req, res) => {
 
   try {
     await rbx.setCookie(cookie);
-    await rbx.setRank(groupId, parseInt(userid), rankId);
+    await rbx.setRank(groupId, parseInt(userid), roleId);
     res.json({ message: "Rank updated successfully!" });
   } catch (err) {
     console.error("Failed to set rank: ", err);
