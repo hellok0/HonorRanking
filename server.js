@@ -1,8 +1,8 @@
 const express = require("express");
 const rbx = require("noblox.js");
+const { database } = require('./firebaseConfig'); // Import Firebase database
 const app = express();
 require('dotenv').config();
-
 
 app.use(express.json());
 
@@ -26,9 +26,6 @@ const honorRanks = {
   150: 89896768
 };
 
-// In-memory storage
-let playerData = {};
-
 app.post("/ranker", async (req, res) => {
   const { userid, honor } = req.body;
 
@@ -50,11 +47,12 @@ app.post("/ranker", async (req, res) => {
     return res.status(400).json({ error: "Invalid honor level." });
   }
 
-  // Store the player data
-  playerData[userid] = { honor };
-
+  // Store the player data in Firebase
   try {
-    await rbx.setCookie(cookie); // Use the cookie from environment variables
+    await database.ref(`players/${userid}`).set({ honor });
+    
+    // Update the player's rank on Roblox
+    await rbx.setCookie(cookie);
     await rbx.setRank(groupId, parseInt(userid), roleId);
     res.json({ message: "Rank updated successfully!" });
   } catch (err) {
@@ -63,7 +61,7 @@ app.post("/ranker", async (req, res) => {
   }
 });
 
-app.get("/ranker/:userid", (req, res) => {
+app.get("/ranker/:userid", async (req, res) => {
   const userid = parseInt(req.params.userid);
 
   // Validate input
@@ -71,12 +69,19 @@ app.get("/ranker/:userid", (req, res) => {
     return res.status(400).json({ error: "Invalid user ID." });
   }
 
-  // Retrieve player data
-  const data = playerData[userid];
-  if (data) {
-    res.json(data);
-  } else {
-    res.status(404).json({ error: "Player not found." });
+  try {
+    // Retrieve player data from Firebase
+    const snapshot = await database.ref(`players/${userid}`).once('value');
+    const data = snapshot.val();
+    
+    if (data) {
+      res.json(data);
+    } else {
+      res.status(404).json({ error: "Player not found." });
+    }
+  } catch (err) {
+    console.error("Failed to retrieve player data: ", err);
+    res.status(500).json({ error: "Failed to retrieve player data." });
   }
 });
 
