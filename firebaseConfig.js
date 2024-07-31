@@ -1,5 +1,5 @@
-const firebase = require('firebase/app');
-require('firebase/firestore');
+const { initializeApp } = require('firebase/app');
+const { getDatabase } = require('firebase/database');
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoSaee2VIZWl0g0uoi3d5WvAxZPBL3dcw",
@@ -11,8 +11,9 @@ const firebaseConfig = {
   measurementId: "G-HK5GBEZ8QV"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-const database = firebase.database();
+// Initialize Realtime Database and get a reference to the service
+const database = getDatabase(app);
 
 module.exports = { database };
