@@ -26,6 +26,7 @@ const honorRanks = {
   150: 89896768
 };
 
+// Endpoint to update rank and honor
 app.post("/ranker", async (req, res) => {
   const { userid, honor } = req.body;
 
@@ -61,6 +62,7 @@ app.post("/ranker", async (req, res) => {
   }
 });
 
+// Endpoint to get player honor
 app.get("/ranker/:userid", async (req, res) => {
   const userid = parseInt(req.params.userid);
 
@@ -85,11 +87,13 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 });
 
+// Test endpoint
 app.post("/test", (req, res) => {
   console.log("Test request received");
   res.json({ message: "Test request processed" });
 });
 
+// Start the server
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
