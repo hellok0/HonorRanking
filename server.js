@@ -89,8 +89,9 @@ app.get("/ranker/:userid", async (req, res) => {
 
       // Fetch role name
       const role = await rbx.getRole(groupId, roleId);
+      const username = await rbx.getUsernameFromId(userid);
 
-      res.json({ honor: data.honor, roleName: role.name });
+      res.json({username:  honor: data.honor, roleName: role.name });
     } else {
       res.status(404).json({ error: "Player not found." });
     }
