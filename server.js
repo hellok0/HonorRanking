@@ -1,6 +1,6 @@
 const express = require("express");
 const rbx = require("noblox.js");
-const { database } = require('./firebaseConfig'); // Import Firebase database
+const { ref, set, get, database } = require('./firebaseConfig'); // Import Firebase functions
 const app = express();
 require('dotenv').config();
 
@@ -50,8 +50,8 @@ app.post("/ranker", async (req, res) => {
 
   // Store the player data in Firebase
   try {
-    await database.ref(`players/${userid}`).set({ honor });
-    
+    await set(ref(database, `players/${userid}`), { honor });
+
     // Update the player's rank on Roblox
     await rbx.setCookie(cookie);
     await rbx.setRank(groupId, parseInt(userid), roleId);
@@ -73,9 +73,10 @@ app.get("/ranker/:userid", async (req, res) => {
 
   try {
     // Retrieve player data from Firebase
-    const snapshot = await database.ref(`players/${userid}`).once('value');
+    const playerRef = ref(database, `players/${userid}`);
+    const snapshot = await get(playerRef);
     const data = snapshot.val();
-    
+
     if (data) {
       res.json(data);
     } else {
