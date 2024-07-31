@@ -72,13 +72,25 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 
   try {
-    // Retrieve player data from Firebase
+    // Retrieve player honor from Firebase
     const playerRef = ref(database, `players/${userid}`);
     const snapshot = await get(playerRef);
     const data = snapshot.val();
 
     if (data) {
-      res.json(data);
+      await rbx.setCookie(cookie);
+
+      // Fetch player info
+      const playerInfo = await rbx.getPlayerInfo(userid);
+
+      // Fetch the user's role ID
+      const userGroups = await rbx.getRankInGroup(groupId, userid);
+      const roleId = userGroups;
+
+      // Fetch role name
+      const role = await rbx.getRole(groupId, roleId);
+
+      res.json({ honor: data.honor, roleName: role.name });
     } else {
       res.status(404).json({ error: "Player not found." });
     }
