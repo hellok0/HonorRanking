@@ -88,6 +88,40 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 });
 
+// Endpoint to populate honor points
+app.post("/populatehonor", async (req, res) => {
+  try {
+    await rbx.setCookie(cookie);
+    
+    // Fetch group members
+    const members = await rbx.getGroupMembers(groupId);
+
+    // Populate honor points based on roles
+    for (const member of members) {
+      const { userId, role } = member;
+      let honor = 0;
+
+      // Determine honor based on role
+      for (let [threshold, id] of Object.entries(honorRanks)) {
+        if (role === id) {
+          honor = parseInt(threshold);
+          break;
+        }
+      }
+
+      if (honor > 0) {
+        // Store the player data in Firebase
+        await set(ref(database, `players/${userId}`), { honor });
+      }
+    }
+
+    res.json({ message: "Honor populated successfully!" });
+  } catch (err) {
+    console.error("Failed to populate honor points: ", err);
+    res.status(500).json({ error: "Failed to populate honor points." });
+  }
+});
+
 // Test endpoint
 app.post("/test", (req, res) => {
   console.log("Test request received");
