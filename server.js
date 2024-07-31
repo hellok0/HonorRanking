@@ -88,34 +88,25 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 });
 
-// Endpoint to populate honor points
 app.post("/populatehonor", async (req, res) => {
   try {
     await rbx.setCookie(cookie);
-    
-    // Fetch group members
-    const members = await rbx.getGroupMembers(groupId);
 
-    // Populate honor points based on roles
-    for (const member of members) {
-      const { userId, role } = member;
-      let honor = 0;
+    for (const [honor, roleId] of Object.entries(honorRanks)) {
+      // Fetch players with the current roleId
+      const players = await rbx.getPlayers(groupId, roleId);
 
-      // Determine honor based on role
-      for (let [threshold, id] of Object.entries(honorRanks)) {
-        if (role === id) {
-          honor = parseInt(threshold);
-          break;
-        }
-      }
+      for (const player of players) {
+        const { userId } = player;
 
-      if (honor > 0) {
-        // Store the player data in Firebase
-        await set(ref(database, `players/${userId}`), { honor });
+        // Store player data in Firebase with the appropriate honor points
+        await set(ref(database, `players/${userId}`), { honor: parseInt(honor) });
+
+        console.log(`Set honor for user ${userId} to ${honor}`);
       }
     }
 
-    res.json({ message: "Honor populated successfully!" });
+    res.json({ message: "Honor points populated successfully!" });
   } catch (err) {
     console.error("Failed to populate honor points: ", err);
     res.status(500).json({ error: "Failed to populate honor points." });
