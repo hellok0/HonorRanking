@@ -118,32 +118,35 @@ app.post("/populatehonor", async (req, res) => {
       for (const player of players) {
         const { userId } = player;
 
-        // Fetch the username from the userId
-        const username = await rbx.getUsernameFromId(userId);
-        if (!username) {
-          console.warn(`Failed to fetch username for userId ${userId}`);
-          continue; // Skip to the next player if username is not found
+        try {
+          // Fetch the username from the userId
+          const username = await rbx.getUsernameFromId(userId);
+          
+          // Store player data in Firebase with the appropriate honor points
+          await set(ref(database, `players/${userId}`), { honor: parseInt(honor), username });
+
+          console.log(`Set honor for user ${userId} (${username}) to ${honor}`);
+
+          // Add player details to the array
+          playerData.push({
+            userId,
+            username,
+            honor: parseInt(honor)
+          });
+
+        } catch (userError) {
+          console.warn(`Failed to fetch username for userId ${userId}: ${userError.message}`);
         }
-
-        // Store player data in Firebase with the appropriate honor points
-        await set(ref(database, `players/${userId}`), { honor: parseInt(honor), username });
-
-        console.log(`Set honor for user ${userId} (${username}) to ${honor}`);
-
-        // Add player details to the array
-        playerData.push({
-          userId,
-          username,
-          honor: parseInt(honor)
-        });
       }
     }
-    res.json({ message: "Honor points populated successfully!" });
+
+    res.json({ message: "Honor points populated successfully!", playerData });
   } catch (err) {
     console.error("Failed to populate honor points: ", err);
     res.status(500).json({ error: "Failed to populate honor points." });
   }
 });
+
 
 // Test endpoint
 app.post("/test", (req, res) => {
