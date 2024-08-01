@@ -108,22 +108,57 @@ app.post("/populatehonor", async (req, res) => {
   try {
     await rbx.setCookie(cookie);
 
+    // Prepare an array to hold the player data
+    const playerData = [];
+
     for (const [honor, roleId] of Object.entries(honorRanks)) {
-      // Fetch players with the current roleId
-      const players = await rbx.getPlayers(groupId, roleId);
+      let cursor = null;
+      let hasMorePlayers = true;
 
-      for (const player of players) {
-        const { userId } = player;
-        const user = await rbx.getUsernameFromId(userId);
+      while (hasMorePlayers) {
+        try {
+          // Fetch players with the current roleId and handle pagination
+          const response = await rbx.getPlayers(groupId, roleId, undefined, 100, cursor);
+          const players = response.players || [];
+          cursor = response.nextPageCursor || null;
+          hasMorePlayers = !!cursor;  // Continue if there is a next page
 
-        // Store player data in Firebase with the appropriate honor points
-        await set(ref(database, `players/${userId}`), { honor: parseInt(honor) }, {username: user});
+          for (const player of players) {
+            const { userId } = player;
 
-        console.log(`Set honor for user ${userId} to ${honor} using ${user}`);
+            try {
+              // Fetch the username from the userId
+              const username = await rbx.getUsernameFromId(userId);
+
+              // Store player data in Firebase with the appropriate honor points
+              await set(ref(database, `players/${userId}`), { honor: parseInt(honor), username });
+
+              console.log(`Set honor for user ${userId} (${username}) to ${honor}`);
+
+              // Add player details to the array
+              playerData.push({
+                userId,
+                username,
+                honor: parseInt(honor)
+              });
+
+            } catch (userError) {
+              // Handle the case where username fetch fails
+              console.warn(`Failed to fetch username for userId ${userId}: ${userError.message}`);
+              // Skip to the next user
+              continue;
+            }
+          }
+        } catch (apiError) {
+          // Handle the case where fetching players fails
+          console.error(`Failed to fetch players for roleId ${roleId}: ${apiError.message}`);
+          // Skip to the next roleId
+          break;
+        }
       }
     }
 
-    res.json({ message: "Honor points populated successfully!" });
+    res.json({ message: "Honor points populated successfully!", playerData });
   } catch (err) {
     console.error("Failed to populate honor points: ", err);
     res.status(500).json({ error: "Failed to populate honor points." });
