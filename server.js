@@ -62,6 +62,32 @@ app.post("/ranker", async (req, res) => {
   }
 });
 
+// Endpoint to get all players' userid and honor
+app.get("/players", async (req, res) => {
+  try {
+    // Retrieve all player data from Firebase
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+    const data = snapshot.val();
+
+    if (data) {
+      // Transform data into an array of user ID and honor
+      const players = Object.entries(data).map(([userid, playerData]) => ({
+        userid,
+        honor: playerData.honor
+      }));
+
+      res.json({ players });
+    } else {
+      res.status(404).json({ error: "No players found." });
+    }
+  } catch (err) {
+    console.error("Failed to retrieve players data: ", err);
+    res.status(500).json({ error: "Failed to retrieve players data." });
+  }
+});
+
+
 // Endpoint to get player honor
 app.get("/ranker/:userid", async (req, res) => {
   const userid = parseInt(req.params.userid);
