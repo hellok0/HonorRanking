@@ -90,7 +90,9 @@ app.get("/ranker/:userid", async (req, res) => {
       // Fetch role name
       const role = await rbx.getRole(groupId, roleId);
 
-      res.json({ honor: data.honor, roleName: role.name });
+      // get username 
+      const username = rbx.getUsernameFromId(userid);
+      res.json({ username, honor: data.honor, roleName: role.name });
     } else {
       res.status(404).json({ error: "Player not found." });
     }
@@ -106,6 +108,9 @@ app.post("/populatehonor", async (req, res) => {
   try {
     await rbx.setCookie(cookie);
 
+    // Prepare an array to hold the player data
+    const playerData = [];
+
     for (const [honor, roleId] of Object.entries(honorRanks)) {
       // Fetch players with the current roleId
       const players = await rbx.getPlayers(groupId, roleId);
@@ -113,13 +118,26 @@ app.post("/populatehonor", async (req, res) => {
       for (const player of players) {
         const { userId } = player;
 
-        // Store player data in Firebase with the appropriate honor points
-        await set(ref(database, `players/${userId}`), { honor: parseInt(honor) });
+        // Fetch the username from the userId
+        const username = await rbx.getUsernameFromId(userId);
+        if (!username) {
+          console.warn(`Failed to fetch username for userId ${userId}`);
+          continue; // Skip to the next player if username is not found
+        }
 
-        console.log(`Set honor for user ${userId} to ${honor}`);
+        // Store player data in Firebase with the appropriate honor points
+        await set(ref(database, `players/${userId}`), { honor: parseInt(honor), username });
+
+        console.log(`Set honor for user ${userId} (${username}) to ${honor}`);
+
+        // Add player details to the array
+        playerData.push({
+          userId,
+          username,
+          honor: parseInt(honor)
+        });
       }
     }
-
     res.json({ message: "Honor points populated successfully!" });
   } catch (err) {
     console.error("Failed to populate honor points: ", err);
