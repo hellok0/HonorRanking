@@ -11,6 +11,7 @@ app.use(express.json());
 const groupId = 15049970;
 const cookie = process.env.ROBLOSECURITY; // Read cookie from environment variables
 
+// Honor ranks with corresponding role IDs
 const honorRanks = {
   0: 102794177,
   1: 84972954,
@@ -64,7 +65,7 @@ app.post("/ranker", async (req, res) => {
   }
 });
 
-// Endpoint to get all players' userid and honor
+// Endpoint to get all players' userid and honor and minuts spent
 app.get("/players", async (req, res) => {
   try {
     // Retrieve all player data from Firebase
@@ -88,7 +89,6 @@ app.get("/players", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve players data." });
   }
 });
-
 
 // Endpoint to get player honor
 app.get("/ranker/:userid", async (req, res) => {
@@ -128,37 +128,33 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 });
 
-
-
+// Update the /populatehonor endpoint to include time spent
 app.post("/populatehonor", async (req, res) => {
   try {
     await rbx.setCookie(cookie);
 
     for (const [honor, roleId] of Object.entries(honorRanks)) {
+      // Calculate time spent based on honor
+      const timeSpent = honor * 30; // 30 minutes per honor
+
       // Fetch players with the current roleId
       const players = await rbx.getPlayers(groupId, roleId);
 
       for (const player of players) {
         const { userId } = player;
 
-        // Store player data in Firebase with the appropriate honor points
-        await set(ref(database, `players/${userId}`), { honor: parseInt(honor) });
+        // Store player data in Firebase with the appropriate honor points and time spent
+        await set(ref(database, `players/${userId}`), { honor: parseInt(honor), timeSpent });
 
-        console.log(`Set honor for user ${userId} to ${honor}`);
+        console.log(`Set honor for user ${userId} to ${honor} with time spent: ${timeSpent} minutes`);
       }
     }
 
-    res.json({ message: "Honor points populated successfully!" });
+    res.json({ message: "Honor points and time spent populated successfully!" });
   } catch (err) {
     console.error("Failed to populate honor points: ", err);
     res.status(500).json({ error: "Failed to populate honor points." });
   }
-});
-
-// Test endpoint
-app.post("/test", (req, res) => {
-  console.log("Test request received");
-  res.json({ message: "Test request processed" });
 });
 
 // Test endpoint
