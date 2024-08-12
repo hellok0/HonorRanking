@@ -29,43 +29,51 @@ const honorRanks = {
   6969: 98990029,
 };
 
-// Endpoint to update rank and honor
+// Endpoint to update honor and timeSpent, optionally update rank if needed
 app.post("/ranker", async (req, res) => {
-  const { userid, honor } = req.body;
+  const { userid, honor, timeSpent } = req.body;
 
   // Validate input
-  if (!userid || !honor || typeof userid !== 'number' || typeof honor !== 'number') {
+  if (!userid || !honor || !timeSpent || typeof userid !== 'number' || typeof honor !== 'number' || typeof timeSpent !== 'number') {
     return res.status(400).json({ error: "Invalid input." });
   }
 
-  // Determine the role ID based on honor
-  let roleId;
+  // Determine the new role ID based on honor
+  let newRoleId;
   for (let [threshold, id] of Object.entries(honorRanks).reverse()) {
     if (honor >= threshold) {
-      roleId = id;
+      newRoleId = id;
       break;
     }
   }
 
-  if (!roleId) {
+  if (!newRoleId) {
     return res.status(400).json({ error: "Invalid honor level." });
   }
 
-  // Store the player data in Firebase
   try {
-    await set(ref(database, `players/${userid}`), { honor });
+    // Store the updated player data in Firebase
+    await set(ref(database, `players/${userid}`), { honor, timeSpent });
 
-    // Update the player's rank on Roblox
+    // Set Roblox cookie
     await rbx.setCookie(cookie);
-    await rbx.setRank(groupId, parseInt(userid), roleId);
-    res.json({ message: "Rank updated successfully!" });
+
+    // Fetch the current role ID
+    const currentRoleId = await rbx.getRankInGroup(groupId, userid);
+
+    // Update rank only if it's different from the newRoleId
+    if (currentRoleId !== newRoleId) {
+      await rbx.setRank(groupId, parseInt(userid), newRoleId);
+    }
+
+    res.json({ message: "Honor and time spent updated successfully!" });
   } catch (err) {
-    console.error("Failed to set rank: ", err);
-    res.status(500).json({ error: "Failed to set rank." });
+    console.error("Failed to update player data: ", err);
+    res.status(500).json({ error: "Failed to update player data." });
   }
 });
 
-// Endpoint to get all players' userid and honor and minuts spent
+
 app.get("/players", async (req, res) => {
   try {
     // Retrieve all player data from Firebase
@@ -74,10 +82,11 @@ app.get("/players", async (req, res) => {
     const data = snapshot.val();
 
     if (data) {
-      // Transform data into an array of user ID and honor
+      // Transform data into an array of user ID, honor, and timeSpent
       const players = Object.entries(data).map(([userid, playerData]) => ({
         userid,
-        honor: playerData.honor
+        honor: playerData.honor || 0,         // Ensure default values
+        timeSpent: playerData.timeSpent || 0  // Ensure default values
       }));
 
       res.json({ players });
@@ -90,7 +99,8 @@ app.get("/players", async (req, res) => {
   }
 });
 
-// Endpoint to get player honor
+
+// Endpoint to get player honor and time spent
 app.get("/ranker/:userid", async (req, res) => {
   const userid = parseInt(req.params.userid);
 
@@ -100,7 +110,7 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 
   try {
-    // Retrieve player honor from Firebase
+    // Retrieve player data from Firebase
     const playerRef = ref(database, `players/${userid}`);
     const snapshot = await get(playerRef);
     const data = snapshot.val();
@@ -118,42 +128,18 @@ app.get("/ranker/:userid", async (req, res) => {
       // Fetch role name
       const role = await rbx.getRole(groupId, roleId);
 
-      res.json({ honor: data.honor, roleName: role.name });
+      // Send the player data with honor, timeSpent, and roleName
+      res.json({ 
+        honor: data.honor, 
+        timeSpent: data.timeSpent || 0,  // Include timeSpent, default to 0 if not found
+        roleName: role.name 
+      });
     } else {
       res.status(404).json({ error: "Player not found." });
     }
   } catch (err) {
     console.error("Failed to retrieve player data: ", err);
     res.status(500).json({ error: "Failed to retrieve player data." });
-  }
-});
-
-// Update the /populatehonor endpoint to include time spent
-app.post("/populatehonor", async (req, res) => {
-  try {
-    await rbx.setCookie(cookie);
-
-    for (const [honor, roleId] of Object.entries(honorRanks)) {
-      // Calculate time spent based on honor
-      const timeSpent = honor * 30; // 30 minutes per honor
-
-      // Fetch players with the current roleId
-      const players = await rbx.getPlayers(groupId, roleId);
-
-      for (const player of players) {
-        const { userId } = player;
-
-        // Store player data in Firebase with the appropriate honor points and time spent
-        await set(ref(database, `players/${userId}`), { honor: parseInt(honor), timeSpent });
-
-        console.log(`Set honor for user ${userId} to ${honor} with time spent: ${timeSpent} minutes`);
-      }
-    }
-
-    res.json({ message: "Honor points and time spent populated successfully!" });
-  } catch (err) {
-    console.error("Failed to populate honor points: ", err);
-    res.status(500).json({ error: "Failed to populate honor points." });
   }
 });
 
