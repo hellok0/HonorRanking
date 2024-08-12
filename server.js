@@ -143,6 +143,70 @@ app.get("/ranker/:userid", async (req, res) => {
   }
 });
 
+// ServerScript in server.js
+
+app.post("/updateHonor", async (req, res) => {
+  const { userid, elapsedMinutes } = req.body;
+
+  // Validate input
+  if (!userid || !elapsedMinutes || typeof userid !== 'number' || typeof elapsedMinutes !== 'number') {
+    return res.status(400).json({ error: "Invalid input." });
+  }
+
+  try {
+    // Retrieve current player data from Firebase
+    const playerRef = ref(database, `players/${userid}`);
+    const snapshot = await get(playerRef);
+    const data = snapshot.val();
+
+    if (!data) {
+      return res.status(404).json({ error: "Player not found." });
+    }
+
+    let { honor, timeSpent } = data;
+    timeSpent += elapsedMinutes;
+
+    // Increment honor every 30 minutes
+    let honorIncrement = Math.floor(timeSpent / 30);
+    honor += honorIncrement;
+
+    // Update player data in Firebase
+    await set(playerRef, { honor, timeSpent });
+
+    // Determine the new role ID based on honor
+    let newRoleId;
+    for (let [threshold, id] of Object.entries(honorRanks).reverse()) {
+      if (honor >= threshold) {
+        newRoleId = id;
+        break;
+      }
+    }
+
+    if (!newRoleId) {
+      return res.status(400).json({ error: "Invalid honor level." });
+    }
+
+    // Set Roblox cookie
+    await rbx.setCookie(cookie);
+
+    // Fetch the current role ID
+    const currentRoleId = await rbx.getRankInGroup(groupId, userid);
+
+    // Update rank only if it's different from the newRoleId
+    if (currentRoleId !== newRoleId) {
+      await rbx.setRank(groupId, parseInt(userid), newRoleId);
+    }
+
+    res.json({ message: "Honor and time spent updated successfully!" });
+  } catch (err) {
+    console.error("Failed to update player data: ", err);
+    res.status(500).json({ error: "Failed to update player data." });
+  }
+});
+
+
+
+
 // Test endpoint
 app.post("/test", (req, res) => {
   console.log("Test request received");
