@@ -3,6 +3,7 @@ const rbx = require("noblox.js");
 const { ref, set, get, database } = require('./firebaseConfig'); // Import Firebase functions
 const app = express();
 require('dotenv').config();
+const fs = require('fs');
 
 app.use(express.json());
 
