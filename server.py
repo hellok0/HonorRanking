@@ -2,7 +2,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask, request, jsonify
-import roblox
+from robloxpy import Client
 import json
 
 # Initialize Flask app
@@ -21,7 +21,7 @@ firebase_admin.initialize_app(cred, {
 # Group ID and Roblox client
 group_id = 15049970
 cookie = os.getenv("ROBLOSECURITY")
-roblox_client = roblox.Client(cookie=cookie)
+roblox_client = Client(cookie)
 
 # Honor ranks with corresponding role IDs
 honor_ranks = {
@@ -70,11 +70,12 @@ def ranker():
 
         # Fetch the current role ID
         group = roblox_client.get_group(group_id)
-        current_role = group.get_member(userid).get_role()
+        member = group.get_member(userid)
+        current_role_id = member.role_id  # Assuming role_id is the correct attribute
 
         # Update rank only if it's different from the new_role_id
-        if current_role.id != new_role_id:
-            group.get_member(userid).set_role(new_role_id)
+        if current_role_id != new_role_id:
+            member.set_role(new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:
@@ -113,7 +114,7 @@ def get_ranker(userid):
             # Fetch the user's role ID and role name
             group = roblox_client.get_group(group_id)
             member = group.get_member(userid)
-            role_name = member.get_role().name
+            role_name = member.get_role().name  # Adjust method if necessary
 
             # Send the player data with honor, timeSpent, and roleName
             return jsonify({
@@ -127,8 +128,7 @@ def get_ranker(userid):
         print(f"Failed to retrieve player data: {err}")
         return jsonify({"error": "Failed to retrieve player data."}), 500
 
-# ServerScript in server.js
-
+# Endpoint to update honor based on elapsed time
 @app.route("/updateHonor", methods=["POST"])
 def update_honor():
     data = request.get_json()
@@ -142,13 +142,13 @@ def update_honor():
     try:
         # Retrieve current player data from Firebase
         ref = db.reference(f'players/{userid}')
-        data = ref.get()
+        player_data = ref.get()
 
-        if not data:
+        if not player_data:
             return jsonify({"error": "Player not found."}), 404
 
-        honor = data.get('honor', 0)
-        time_spent = data.get('timeSpent', 0) + elapsed_minutes
+        honor = player_data.get('honor', 0)
+        time_spent = player_data.get('timeSpent', 0) + elapsed_minutes
 
         # Increment honor every 30 minutes
         honor_increment = time_spent // 30
@@ -169,11 +169,12 @@ def update_honor():
 
         # Fetch the current role ID
         group = roblox_client.get_group(group_id)
-        current_role = group.get_member(userid).get_role()
+        member = group.get_member(userid)
+        current_role_id = member.role_id  # Assuming role_id is the correct attribute
 
         # Update rank only if it's different from the new_role_id
-        if current_role.id != new_role_id:
-            group.get_member(userid).set_role(new_role_id)
+        if current_role_id != new_role_id:
+            member.set_role(new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:
