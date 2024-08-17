@@ -24,6 +24,10 @@ robloxpy.User.Internal.SetCookie(cookie, True)
 # Group ID and Roblox client
 group_id = 15049970
 
+roles = robloxpy.Group.External.GetRoles(group_id)
+members_list = robloxpy.Group.External.GetMembersList(group_id)
+
+
 # Honor ranks with corresponding role IDs
 honor_ranks = {
     0: 102794177,
@@ -41,6 +45,15 @@ honor_ranks = {
     150: 89896768,
     6969: 98990029,
 }
+# Getting user role in the group
+def get_user_role(user_id):
+    for member in members_list:
+        if member['user_id'] == user_id:
+            role_id = member.get('role_id')  # Assuming role_id is in the member data
+            role_name = next((role['name'] for role in roles if role['id'] == role_id), 'Unknown Role')
+            return role_name
+    return 'Not a member'
+
 
 # Endpoint to update honor and timeSpent, optionally update rank if needed
 @app.route("/ranker", methods=["POST"])
@@ -107,10 +120,8 @@ def get_ranker(userid):
         data = ref.get()
 
         if data:
-
             # Fetch the user's role ID and role name
-            current_role_id = robloxpy.Group.External.GetRoleInGroup(userid, group_id)
-            role_name = robloxpy.Group.External.GetRoleName(current_role_id)
+            _, role_name = get_user_role(userid)
 
             # Send the player data with honor, timeSpent, and roleName
             return jsonify({
