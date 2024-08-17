@@ -3,7 +3,6 @@ import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask, request, jsonify
 import robloxpy
-import json
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -13,15 +12,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Load Firebase credentials
-cred = credentials.Certificate('path/to/firebaseConfig.json')
+cred = credentials.Certificate('firebaseConfig.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://tghhonordata-default-rtdb.firebaseio.com/'
 })
 
+# Set the Roblox cookie
+cookie = os.getenv("ROBLOSECURITY")
+robloxpy.User.Internal.SetCookie(cookie, True)
+
 # Group ID and Roblox client
 group_id = 15049970
-cookie = os.getenv("ROBLOSECURITY")
-roblox_client = Client(cookie)
 
 # Honor ranks with corresponding role IDs
 honor_ranks = {
@@ -69,13 +70,11 @@ def ranker():
         ref.set({'honor': honor, 'timeSpent': time_spent})
 
         # Fetch the current role ID
-        group = roblox_client.get_group(group_id)
-        member = group.get_member(userid)
-        current_role_id = member.role_id  # Assuming role_id is the correct attribute
+        current_role_id = robloxpy.Group.External.GetRoleInGroup(userid, group_id)
 
         # Update rank only if it's different from the new_role_id
         if current_role_id != new_role_id:
-            member.set_role(new_role_id)
+            robloxpy.Group.Admin.ChangeRank(userid, group_id, new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:
@@ -109,12 +108,11 @@ def get_ranker(userid):
 
         if data:
             # Fetch player info
-            player_info = roblox_client.get_user(userid)
+            player_info = robloxpy.User.External.GetUserInfo(userid)
 
             # Fetch the user's role ID and role name
-            group = roblox_client.get_group(group_id)
-            member = group.get_member(userid)
-            role_name = member.get_role().name  # Adjust method if necessary
+            current_role_id = robloxpy.Group.External.GetRoleInGroup(userid, group_id)
+            role_name = robloxpy.Group.External.GetRoleName(current_role_id)
 
             # Send the player data with honor, timeSpent, and roleName
             return jsonify({
@@ -168,13 +166,11 @@ def update_honor():
             return jsonify({"error": "Invalid honor level."}), 400
 
         # Fetch the current role ID
-        group = roblox_client.get_group(group_id)
-        member = group.get_member(userid)
-        current_role_id = member.role_id  # Assuming role_id is the correct attribute
+        current_role_id = robloxpy.Group.External.GetRoleInGroup(userid, group_id)
 
         # Update rank only if it's different from the new_role_id
         if current_role_id != new_role_id:
-            member.set_role(new_role_id)
+            robloxpy.Group.Admin.ChangeRank(userid, group_id, new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:
