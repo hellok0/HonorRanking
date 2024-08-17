@@ -1,20 +1,13 @@
-import os
-import firebase_admin
-from firebase_admin import credentials, db
-
-# Load Firebase credentials from the JSON file
-cred = credentials.Certificate('path/to/your/firebaseConfig.json')
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://tghhonordata-default-rtdb.firebaseio.com/'
-})
-
-# Now you can use the Firebase Realtime Database
-# Example usage:
-def set_data(reference, data):
-    ref = db.reference(reference)
-    ref.set(data)
-
-def get_data(reference):
-    ref = db.reference(reference)
-    return ref.get()
-
+{
+  "type": "service_account",
+  "project_id": "tghhonordata",
+  "private_key_id": "e8e2349e1e28db3f18c72344edde8c1f83bc65e4",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDh5mjHhEX1UuVL\nfkRtWD0BAP1/MtlqA7vrQGO08w4eAeU/4ujubZJKMk06Hbqg622BfFtmqXEk8q1l\nbuIu7nYGpDd9FyM47x8QLNFqPXOKt8x8lKY0T2kGHvX8vGKKBnF/v88cOHtA4Szn\nO2BYELKkKOYrBaEyyy48lni88gEmA3Ss9ThDK59L889+03gRu/EtOdrDDOfwmeEq\nfxvgzibu9kHoR+N4lMlBQrBYjIvAFuulfNa2SOkJqI6r/uFOqOIj6JYKjMV87ZgY\nVNQMhyQd0z1xDgtVErIQtJQ+ivVZsffXTi6vRBubYoe/E43RNh7cl8EzDauXHC95\nTWqpyx/tAgMBAAECggEAOXFWqY1oILbgma7VBZ0PfibbTzIF+SBT88Fe2U+JAnZm\n7jTsGF0Cex2JZ8LRh0P2h5uwvk1N+SBAmW910otOteeiOIveqAaeNoW/Bq3zqI2O\nUQuXq+uZgDX1RTw+LmzvBZYnuzxdkyTvPylpGVu9oWLJDJ2U3Q6vhjaZIyrCwgBa\nceSfi6WPAo8j3Ot9Zw5/THm67rUrbXW+MH+2iwYAysVntEXi1seILLS9hiIQ3NBl\nBvJ7oQc4PMk9FlpBgmFq+ZRn/pERTN76cC/ZAdr4un5vu28l79YPqOl4Ic0hc2Q4\nuMl+lYHEDvQYH5cj67j5JbwcqZ7FIOadl0w81w/5HQKBgQD/IOAio6c0DI1PYwjq\nJKveXm4EjQH9Z1ogaqENDW2+9RIAPouoZqUUaurBGz6c1uK39Uml9n3p0GYJ8Msi\nrIQJOj5srZEr/wy/jV1qDwMhcFFHXPvg0CoQw0KRwvSnifJW0dwegDNR+9ZgAklw\nVniz8Zf8UfVWOJ/QX87+UFinqwKBgQDiq/jMEWQG18Tn68ASqBs8YGR2dLdU+14F\nQhqgt9788L+cp4OfK8TNZY92g93DbJ4u/21LVQhYy/SHp/60EfofFZPVGwjnmycy\na6+ceQ2v20hSP+Y2BnPcA8T6B55tJBqRSnobYeQ6/uTpuk/v34dQ+hCVdltAjyuj\nmRbiZfBexwKBgC30oQr8SZkBjc63+xoaAu9qOQ0OzUX1APIH4vyz54nXISf0HDn4\nS1ITNDgWjT+5IVubjmmbrfCY/lhaDG0xgBMdb7MpzJWNOqGieCorjBfQ4IMnR6Om\nO32Lfok9Ac7P9VwYLzs7QoNJBsOChfH7UYCwSv1DUhr21iq1p1Z96IpDAoGAccNV\n7zWbOkP4s12C3No6MSc/xKP3j1NJcOIocxlVdSVvRbRdPvm8oEmkoxqzpm1RRs0z\nkWdv9QEIDT2ne8C6A/fUZlRXN8aK+adKUAIBeI1Z0s33QI4kf/v0VHiWbrh8DQeQ\nGUYcQe/D+/piPEW3qFCZGip4ygIRKN6guafn5+kCgYEAzxczDp+wVbiR9Cq9Dd+B\nHld/OC5Gd+HXm0qdF4ls5b0ZEjVCXf/VcSrjvj1VHiYzHiX7kKMY9g9urZMGdwMN\nW24oAXEvnqHa7V1XddoPAgiQmp2mZhbXgwwcRdB9sHFeEp8A7rcDMpknuhc+a99v\nf1gmJGF0ddXDjT6/pEs1teU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-4fz4q@tghhonordata.iam.gserviceaccount.com",
+  "client_id": "116119760327665876952",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4fz4q%40tghhonordata.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

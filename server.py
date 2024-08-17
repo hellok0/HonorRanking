@@ -2,7 +2,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask, request, jsonify
-from robloxpy import Client
+import robloxpy
 import json
 
 # Initialize Flask app
