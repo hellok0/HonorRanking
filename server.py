@@ -2,7 +2,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask, request, jsonify
-import noblox
+import roblox
 import json
 
 # Initialize Flask app
@@ -15,12 +15,13 @@ load_dotenv()
 # Load Firebase credentials
 cred = credentials.Certificate('path/to/firebaseConfig.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://your-database-url.firebaseio.com/'
+    'databaseURL': 'https://tghhonordata-default-rtdb.firebaseio.com/'
 })
 
-# Group ID and cookie
+# Group ID and Roblox client
 group_id = 15049970
 cookie = os.getenv("ROBLOSECURITY")
+roblox_client = roblox.Client(cookie=cookie)
 
 # Honor ranks with corresponding role IDs
 honor_ranks = {
@@ -67,15 +68,13 @@ def ranker():
         ref = db.reference(f'players/{userid}')
         ref.set({'honor': honor, 'timeSpent': time_spent})
 
-        # Set Roblox cookie
-        noblox.set_cookie(cookie)
-
         # Fetch the current role ID
-        current_role_id = noblox.get_rank_in_group(group_id, userid)
+        group = roblox_client.get_group(group_id)
+        current_role = group.get_member(userid).get_role()
 
         # Update rank only if it's different from the new_role_id
-        if current_role_id != new_role_id:
-            noblox.set_rank(group_id, userid, new_role_id)
+        if current_role.id != new_role_id:
+            group.get_member(userid).set_role(new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:
@@ -108,23 +107,19 @@ def get_ranker(userid):
         data = ref.get()
 
         if data:
-            noblox.set_cookie(cookie)
-
             # Fetch player info
-            player_info = noblox.get_player_info(userid)
+            player_info = roblox_client.get_user(userid)
 
-            # Fetch the user's role ID
-            user_groups = noblox.get_rank_in_group(group_id, userid)
-            role_id = user_groups
-
-            # Fetch role name
-            role = noblox.get_role(group_id, role_id)
+            # Fetch the user's role ID and role name
+            group = roblox_client.get_group(group_id)
+            member = group.get_member(userid)
+            role_name = member.get_role().name
 
             # Send the player data with honor, timeSpent, and roleName
             return jsonify({
                 "honor": data['honor'],
                 "timeSpent": data.get('timeSpent', 0),
-                "roleName": role['name']
+                "roleName": role_name
             })
         else:
             return jsonify({"error": "Player not found."}), 404
@@ -172,15 +167,13 @@ def update_honor():
         if not new_role_id:
             return jsonify({"error": "Invalid honor level."}), 400
 
-        # Set Roblox cookie
-        noblox.set_cookie(cookie)
-
         # Fetch the current role ID
-        current_role_id = noblox.get_rank_in_group(group_id, userid)
+        group = roblox_client.get_group(group_id)
+        current_role = group.get_member(userid).get_role()
 
         # Update rank only if it's different from the new_role_id
-        if current_role_id != new_role_id:
-            noblox.set_rank(group_id, userid, new_role_id)
+        if current_role.id != new_role_id:
+            group.get_member(userid).set_role(new_role_id)
 
         return jsonify({"message": "Honor and time spent updated successfully!"})
     except Exception as err:

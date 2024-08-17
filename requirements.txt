@@ -1,5 +1,4 @@
-Flask
-firebase-admin
-python-dotenv
-robloxpy
-
+Flask==2.3.2
+firebase-admin==6.0.1
+roblox.py==1.1.3
+python-dotenv==1.0.0
