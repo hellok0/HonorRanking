@@ -107,8 +107,6 @@ def get_ranker(userid):
         data = ref.get()
 
         if data:
-            # Fetch player info
-            player_info = robloxpy.User.External.GetUserInfo(userid)
 
             # Fetch the user's role ID and role name
             current_role_id = robloxpy.Group.External.GetRoleInGroup(userid, group_id)
