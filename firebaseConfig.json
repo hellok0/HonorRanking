@@ -1,0 +1,20 @@
+import os
+import firebase_admin
+from firebase_admin import credentials, db
+
+# Load Firebase credentials from the JSON file
+cred = credentials.Certificate('path/to/your/firebaseConfig.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://tghhonordata-default-rtdb.firebaseio.com/'
+})
+
+# Now you can use the Firebase Realtime Database
+# Example usage:
+def set_data(reference, data):
+    ref = db.reference(reference)
+    ref.set(data)
+
+def get_data(reference):
+    ref = db.reference(reference)
+    return ref.get()
+
