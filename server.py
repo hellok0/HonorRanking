@@ -26,11 +26,6 @@ group_id = 15049970
 
 roles = robloxpy.Group.External.GetRoles(group_id)
 members_list = robloxpy.Group.External.GetMembersList(group_id)
-print(f"Members list: {members_list}")  # Check what is being returned
-# Check if the response is a string or not a list of dictionaries
-if not isinstance(members_list, list) or any(not isinstance(member, dict) for member in members_list):
-    print(f"Unexpected response: {members_list}")
-    members_list = []  # Set to an empty list or handle the error appropriately
 
 
 # Honor ranks with corresponding role IDs
@@ -53,16 +48,11 @@ honor_ranks = {
 # Getting user role in the group
 def get_user_role(user_id):
     for member in members_list:
-        if isinstance(member, dict):  # Ensure the member is a dictionary
-            if member.get('user_id') == user_id:
-                role_id = member.get('role_id')
-                role_name = next((role['name'] for role in roles if role['id'] == role_id), 'Unknown Role')
-                return role_name
-        else:
-            print(f"Unexpected member format: {member}")  # Log unexpected data
+        if member['user_id'] == user_id:
+            role_id = member.get('role_id')  # Assuming role_id is in the member data
+            role_name = next((role['name'] for role in roles if role['id'] == role_id), 'Unknown Role')
+            return role_name
     return 'Not a member'
-
-
 
 
 # Endpoint to update honor and timeSpent, optionally update rank if needed
@@ -121,6 +111,7 @@ def get_players():
         print(f"Failed to retrieve players data: {err}")
         return jsonify({"error": "Failed to retrieve players data."}), 500
 
+# Endpoint to get player honor and time spent
 @app.route("/ranker/<int:userid>", methods=["GET"])
 def get_ranker(userid):
     try:
@@ -128,17 +119,13 @@ def get_ranker(userid):
         ref = db.reference(f'players/{userid}')
         data = ref.get()
 
-        # Debug print to check the data returned
-        print(f"Data retrieved for user {userid}: {data}")
-        print(f"Data type: {type(data)}")
-
         if data:
-            # Fetch the user's role name
-            role_name = get_user_role(userid)
+            # Fetch the user's role ID and role name
+            _, role_name = get_user_role(userid)
 
             # Send the player data with honor, timeSpent, and roleName
             return jsonify({
-                "honor": data['honor'],  # This line could fail if data isn't a dictionary
+                "honor": data['honor'],
                 "timeSpent": data.get('timeSpent', 0),
                 "roleName": role_name
             })
@@ -147,7 +134,6 @@ def get_ranker(userid):
     except Exception as err:
         print(f"Failed to retrieve player data: {err}")
         return jsonify({"error": "Failed to retrieve player data."}), 500
-
 
 # Endpoint to update honor based on elapsed time
 @app.route("/updateHonor", methods=["POST"])
@@ -210,3 +196,4 @@ def test():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 3000))
     app.run(host='0.0.0.0', port=port)
+
