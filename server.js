@@ -73,7 +73,6 @@ app.post("/ranker", async (req, res) => {
   }
 });
 
-
 app.get("/players", async (req, res) => {
   try {
     // Retrieve all player data from Firebase
@@ -82,12 +81,17 @@ app.get("/players", async (req, res) => {
     const data = snapshot.val();
 
     if (data) {
-      // Transform data into an array of user ID, honor, and timeSpent
-      const players = Object.entries(data).map(([userid, playerData]) => ({
-        userid,
-        honor: playerData.honor || 0,         // Ensure default values
-        timeSpent: playerData.timeSpent || 0  // Ensure default values
-      }));
+      const players = await Promise.all(
+        Object.entries(data).map(async ([userid, playerData]) => {
+          const username = await rbx.getUsernameFromId(parseInt(userid));
+          return {
+            userid,
+            username,
+            honor: playerData.honor || 0,         // Ensure default values
+            timeSpent: playerData.timeSpent || 0  // Ensure default values
+          };
+        })
+      );
 
       res.json({ players });
     } else {
@@ -98,7 +102,6 @@ app.get("/players", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve players data." });
   }
 });
-
 
 // Endpoint to get player honor and time spent
 app.get("/ranker/:userid", async (req, res) => {
@@ -128,11 +131,15 @@ app.get("/ranker/:userid", async (req, res) => {
       // Fetch role name
       const role = await rbx.getRole(groupId, roleId);
 
+      // Fetch username based on the user ID
+      const username = await rbx.getUsernameFromId(userid);
+
       // Send the player data with honor, timeSpent, and roleName
       res.json({ 
         honor: data.honor, 
         timeSpent: data.timeSpent || 0,  // Include timeSpent, default to 0 if not found
-        roleName: role.name 
+        roleName: role.name,
+        username: username  // Include the username
       });
     } else {
       res.status(404).json({ error: "Player not found." });
