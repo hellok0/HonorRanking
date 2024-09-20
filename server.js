@@ -29,6 +29,19 @@ const honorRanks = {
   6969: 98990029,
 };
 
+async function refreshRobloxCookie() {
+    try {
+        const newCookie = await rbx.refreshCookie(cookie); // Refresh the cookie
+        console.log("Cookie refreshed successfully:", newCookie);
+        return newCookie; // Return the new cookie if needed
+    } catch (err) {
+        console.error("Failed to refresh cookie:", err);
+        return null; // Handle error as necessary
+    }
+}
+
+
+
 // Endpoint to update honor and timeSpent, optionally update rank if needed
 app.post("/ranker", async (req, res) => {
   const { userid, honor, timeSpent } = req.body;
