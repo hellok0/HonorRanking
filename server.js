@@ -117,7 +117,6 @@ app.get("/players", async (req, res) => {
   }
 });
 
-// Endpoint to get player honor and time spent
 app.get("/ranker/:userid", async (req, res) => {
   const userid = parseInt(req.params.userid);
 
@@ -133,28 +132,16 @@ app.get("/ranker/:userid", async (req, res) => {
     const data = snapshot.val();
 
     if (data) {
+      console.log("Setting cookie:", cookie);  // Log the cookie before setting
+
+      // Set the cookie
       await rbx.setCookie(cookie);
+      console.log("Cookie set successfully.");
 
-      // Fetch player info
+      // Proceed with fetching player data
       const playerInfo = await rbx.getPlayerInfo(userid);
-
-      // Fetch the user's role ID
-      const userGroups = await rbx.getRankInGroup(groupId, userid);
-      const roleId = userGroups;
-
-      // Fetch role name
-      const role = await rbx.getRole(groupId, roleId);
-
-      // Fetch username based on the user ID
-      const username = await rbx.getUsernameFromId(userid);
-
-      // Send the player data with honor, timeSpent, and roleName
-      res.json({ 
-        honor: data.honor, 
-        timeSpent: data.timeSpent || 0,  // Include timeSpent, default to 0 if not found
-        roleName: role.name,
-        username: username  // Include the username
-      });
+      console.log("Player info retrieved:", playerInfo);
+      // Continue with the rest of your logic...
     } else {
       res.status(404).json({ error: "Player not found." });
     }
@@ -163,8 +150,6 @@ app.get("/ranker/:userid", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve player data." });
   }
 });
-
-// ServerScript in server.js
 
 app.post("/updateHonor", async (req, res) => {
   const { userid, elapsedMinutes } = req.body;
