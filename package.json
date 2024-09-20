@@ -11,7 +11,7 @@
     "express": "^4.19.2",
     "firebase": "^10.12.4",
     "firebase-admin": "^12.3.0",
-    "noblox.js": "^4.15.1"
+    "noblox.js": "^6.0.2"
   },
   "engines": {
     "node": "18.18.x"
