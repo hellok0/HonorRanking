@@ -9,8 +9,11 @@ app.use(express.json());
 
 // Read the group ID and cookie from environment variables
 const groupId = 15049970;
-const cookie = process.env.ROBLOSECURITY; // Read cookie from environment variables
+const cookie = process.env.ROBLOSECURITY.trim(); // Read cookie from environment variables
 console.log('Cookie:', cookie);
+
+
+
 
 // Honor ranks with corresponding role IDs
 const honorRanks = {
