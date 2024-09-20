@@ -12,7 +12,11 @@ const groupId = 15049970;
 const cookie = process.env.ROBLOSECURITY.trim(); // Read cookie from environment variables
 console.log('Cookie:', cookie);
 
-
+if (typeof cookie === 'string') {
+    console.log("The cookie is a string:", cookie);
+} else {
+    console.log("The cookie is not a string. Type:", typeof cookie);
+}
 
 
 // Honor ranks with corresponding role IDs
@@ -138,7 +142,7 @@ app.get("/ranker/:userid", async (req, res) => {
       console.log("Setting cookie:", cookie);  // Log the cookie before setting
 
       // Set the cookie
-      await rbx.setCookie(cookie);
+      await rbx.setCookie(cookie, true);
       console.log("Cookie set successfully.");
 
       // Proceed with fetching player data
